@@ -81,8 +81,8 @@ def hello_world():
 def test():
     return 'OK'
 
-@app.route('/ER')
-def greet():
+@app.route('/ER', methods=['GET', 'POST'])
+def ER():
     type = request.args.get('type', 'Guest')
     query = request.args.get('query', 'unknown')
     parsed_ddl = sqlglot.parse(query)
