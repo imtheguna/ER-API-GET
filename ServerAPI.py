@@ -102,4 +102,4 @@ def greet():
 
     return tables
 def creteApp():
-    app.run()
+    app.run(host='0.0.0.0')
