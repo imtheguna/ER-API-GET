@@ -1,0 +1,106 @@
+from flask import Flask, request, jsonify
+import sqlglot
+from sqlglot import exp
+from graphviz import Digraph
+
+def extract_table_relationships(parsed_ddl):
+    tables = {}
+    relationships = []
+    table_names = ['']
+    for statement in parsed_ddl:
+        columns = {}
+        current_table = ''
+        table = ''
+        ref = {}
+        if isinstance(statement, exp.Create):
+            snap = statement.this
+            table = str(snap.this.name)
+            current_table = table
+            table_names.append(table)
+            columns = {col.this.name: col.args.get('kind') for col in snap.expressions if isinstance(col, exp.ColumnDef)}
+            ref_temp = {}
+            for col in snap.expressions:
+                if isinstance(col, exp.ColumnDef):
+                    columns[col.this.name] = col.args.get('kind').this.value
+                if isinstance(col, exp.ForeignKey):
+                    ref_temp = {}
+                    ref_temp['left_table'] = table
+                    for left in col.args['expressions']:
+                        if 'left_table_column' not in ref_temp:
+                            ref_temp['left_table_column'] = []
+                        ref_temp['left_table_column'].append(left.this)
+                    right_table = col.args['reference'].this.this.name
+                    ref_temp['right_table'] = right_table
+                    for srcCol in col.args['reference'].this.args['expressions']:
+                        if 'right_table_column' not in ref_temp:
+                            ref_temp['right_table_column'] = []
+                        ref_temp['right_table_column'].append(srcCol.name)
+                if(len(ref_temp.keys())!=0):
+                    ref[right_table] = ref_temp
+            tables[table] = {'columns': columns, 'foreign_keys': ref,'foreign_keys_len':len(ref.keys())}
+
+        elif isinstance(statement,exp.AlterTable):
+            snap = statement.this
+            table = snap.this.name
+            for col in statement.args['actions']:
+                if isinstance(col, exp.AddConstraint):
+                    ref_temp = {}
+                    for action in col.expressions:
+                        if isinstance(action,exp.ForeignKey):
+                            ref_local = {}
+                            ref_local['left_table']=table
+                            for left in action.expressions:
+                                if 'left_table_column' not in ref_local:
+                                    ref_local['left_table_column'] = []
+                                ref_local['left_table_column'].append(left.this)
+
+                            right_table = action.args['reference'].this.this.name
+                            ref_local['right_table'] = right_table
+                            for left in action.args['reference'].this.args['expressions']:
+                                if 'right_table_column' not in ref_local:
+                                    ref_local['right_table_column'] = []
+                                ref_local['right_table_column'].append(left.this)
+                        ref[right_table] = ref_local
+                        
+                            # right_table = col.args['reference'].this.this.name
+                            # ref_temp['right_table'] = right_table
+                            # print(action.iter_expressions)
+                        tables[table]['foreign_keys'] = {right_table:ref[right_table]}
+                        tables[table]['foreign_keys_len'] = len(ref[right_table])
+        
+    #print(tables)
+    return tables
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello'
+
+@app.route('/test')
+def test():
+    return 'OK'
+
+@app.route('/ER')
+def greet():
+    type = request.args.get('type', 'Guest')
+    query = request.args.get('query', 'unknown')
+    parsed_ddl = sqlglot.parse(query)
+    if type == 'ER':
+        tables = extract_table_relationships(parsed_ddl)
+    # dag = Digraph()
+    # for node in tables:
+    #     if(tables[node]['foreign_keys_len']==0):
+    #         pass
+    #     for dep in tables[node]['foreign_keys']:
+    #         for column in tables[node]['foreign_keys'][dep]['right_table_column']:
+    #             dag.edge(dep, node,label=tables[node]['foreign_keys'][dep]['left_table_column'][0]+"="+column)
+        
+
+    # print(dag.source)
+    # dag.render(view=True)
+
+    return tables
+
+if __name__ == '__main__':
+    app.run(port=5002,debug=True)
