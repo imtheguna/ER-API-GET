@@ -101,6 +101,6 @@ def greet():
     # dag.render(view=True)
 
     return tables
-
-if __name__ == '__main__':
-    app.run(port=5002,debug=True)
+def creteApp():
+    if __name__ == '__main__':
+        app.run()
