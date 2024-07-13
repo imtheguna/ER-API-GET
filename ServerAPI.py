@@ -102,5 +102,4 @@ def greet():
 
     return tables
 def creteApp():
-    if __name__ == '__main__':
-        app.run()
+    app.run()
