@@ -20,6 +20,7 @@ def extract_table_relationships(parsed_ddl):
             table_names.append(table)
             columns = {col.this.name: col.args.get('kind') for col in snap.expressions if isinstance(col, exp.ColumnDef)}
             ref_temp = {}
+            print(columns)
             for col in snap.expressions:
                 if isinstance(col, exp.ColumnDef):
                     columns[col.this.name] = col.args.get('kind').this.value
@@ -76,7 +77,11 @@ def get_image(tables,lable=False,result='PNG'):
     filename = 'dag'  # Path to your image file
     dag = Digraph()
     for node in tables:
-        if(tables[node]['foreign_keys_len']==0):
+        if((tables[node]['foreign_keys_len']==0) and len(tables)==1):
+            dag.node(node)
+            pass
+        elif((tables[node]['foreign_keys_len']==0) and len(tables)>1):
+            dag.node(node)
             pass
         for dep in tables[node]['foreign_keys']:
             for column in tables[node]['foreign_keys'][dep]['right_table_column']:
@@ -114,4 +119,5 @@ def ER():
             return get_image(tables=tables,lable=lable,result=result)
     return tables
 def creteApp():
-    app.run(host='0.0.0.0')
+    #app.run(host='0.0.0.0')
+    app.run(debug=True)
