@@ -119,5 +119,5 @@ def ER():
             return get_image(tables=tables,lable=lable,result=result)
     return tables
 def creteApp():
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0',port=8000)
     #app.run(debug=True)
