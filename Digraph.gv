@@ -1,6 +1,0 @@
-digraph {
-	Customers -> Orders [label="ID=CustomerID"]
-	Book -> Orders [label="BookID=BookID"]
-	etl_load_drvr -> Book [label="etl_load_key=etl_load_drvr_key"]
-	etl_load_drvr -> audit_log [label="etl_load_key=etl_load_drvr_key"]
-}
