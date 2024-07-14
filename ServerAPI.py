@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import sqlglot
+from flask import send_file
 from sqlglot import exp
 from graphviz import Digraph
 
@@ -71,6 +72,23 @@ def extract_table_relationships(parsed_ddl):
     #print(tables)
     return tables
 
+def get_image(tables,lable=False,result='PNG'):
+    filename = 'dag'  # Path to your image file
+    dag = Digraph()
+    for node in tables:
+        if(tables[node]['foreign_keys_len']==0):
+            pass
+        for dep in tables[node]['foreign_keys']:
+            for column in tables[node]['foreign_keys'][dep]['right_table_column']:
+                if(lable=='true'):
+                    dag.edge(dep, node,label=tables[node]['foreign_keys'][dep]['left_table_column'][0]+"="+column)
+                else:
+                    dag.edge(dep, node)
+    dag.render(filename, format='png', cleanup=True)
+    if(result=='RAW'):
+        return dag.source
+    return send_file(filename+'.png', mimetype='image/png')
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -84,22 +102,16 @@ def test():
 @app.route('/ER', methods=['GET', 'POST'])
 def ER():
     type = request.args.get('type', 'Guest')
-    query = request.args.get('query', 'unknown')
+    query = request.args.get('query', 'Guest')
+    result = request.args.get('result', 'Guest').upper()
+    lable = request.args.get('lable', 'Guest').lower()
     parsed_ddl = sqlglot.parse(query)
     if type == 'ER':
         tables = extract_table_relationships(parsed_ddl)
-    # dag = Digraph()
-    # for node in tables:
-    #     if(tables[node]['foreign_keys_len']==0):
-    #         pass
-    #     for dep in tables[node]['foreign_keys']:
-    #         for column in tables[node]['foreign_keys'][dep]['right_table_column']:
-    #             dag.edge(dep, node,label=tables[node]['foreign_keys'][dep]['left_table_column'][0]+"="+column)
-        
-
-    # print(dag.source)
-    # dag.render(view=True)
-
+        if(result=='JSON'):
+            return tables
+        elif(result in ['RAW','PNG']):
+            return get_image(tables=tables,lable=lable,result=result)
     return tables
 def creteApp():
     app.run(host='0.0.0.0')
