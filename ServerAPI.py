@@ -3,6 +3,7 @@ import sqlglot
 from flask import send_file
 from sqlglot import exp
 from graphviz import Digraph
+import json
 
 def extract_table_relationships(parsed_ddl):
     tables = {}
@@ -114,6 +115,7 @@ def ER():
     if type == 'ER':
         tables = extract_table_relationships(parsed_ddl)
         if(result=='JSON'):
+            print(json.dumps(tables))
             return tables
         elif(result in ['RAW','PNG']):
             return get_image(tables=tables,lable=lable,result=result)

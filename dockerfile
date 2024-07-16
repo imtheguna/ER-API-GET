@@ -25,3 +25,4 @@ EXPOSE 4444
 
 # Command to run the application using Gunicorn
 CMD ["/bin/sh", "-c", "/check_and_kill_port.sh && gunicorn run:app"]
+
