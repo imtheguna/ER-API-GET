@@ -21,7 +21,6 @@ def extract_table_relationships(parsed_ddl):
             table_names.append(table)
             columns = {col.this.name: col.args.get('kind') for col in snap.expressions if isinstance(col, exp.ColumnDef)}
             ref_temp = {}
-            print(columns)
             for col in snap.expressions:
                 if isinstance(col, exp.ColumnDef):
                     columns[col.this.name] = col.args.get('kind').this.value
@@ -107,19 +106,23 @@ def test():
 
 @app.route('/ER', methods=['GET', 'POST'])
 def ER():
-    type = request.args.get('type', 'Guest')
-    query = request.args.get('query', 'Guest')
-    result = request.args.get('result', 'Guest').upper()
-    lable = request.args.get('lable', 'Guest').lower()
-    parsed_ddl = sqlglot.parse(query)
-    if type == 'ER':
-        tables = extract_table_relationships(parsed_ddl)
-        if(result=='JSON'):
-            print(json.dumps(tables))
-            return tables
-        elif(result in ['RAW','PNG']):
-            return get_image(tables=tables,lable=lable,result=result)
-    return tables
+    try:
+        type = request.args.get('type', 'Guest')
+        query = request.args.get('query', 'Guest')
+        result = request.args.get('result', 'Guest').upper()
+        lable = request.args.get('lable', 'Guest').lower()
+        parsed_ddl = sqlglot.parse(query)
+        if type == 'ER':
+            tables = extract_table_relationships(parsed_ddl)
+            if(result=='JSON'):
+                return json.dumps(tables)
+            elif(result=='JSONRAW'):
+                return tables
+            elif(result in ['RAW','PNG']):
+                return get_image(tables=tables,lable=lable,result=result)
+        return tables
+    except Exception as e:
+        return e
 def creteApp():
     app.run(host='0.0.0.0',port=4444)
     #app.run(debug=True)
