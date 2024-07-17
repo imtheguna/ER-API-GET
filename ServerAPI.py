@@ -4,6 +4,7 @@ from flask import send_file
 from sqlglot import exp
 from graphviz import Digraph
 import json
+from flask_cors import CORS
 
 def extract_table_relationships(parsed_ddl):
     tables = {}
@@ -105,6 +106,7 @@ def get_image(tables,lable=False,result='PNG'):
     return send_file(filename+'.png', mimetype='image/png')
 
 app = Flask(__name__)
+CORS(app) 
 
 @app.route('/')
 def hello_world():
