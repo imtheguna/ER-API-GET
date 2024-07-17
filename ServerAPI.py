@@ -23,9 +23,11 @@ def extract_table_relationships(parsed_ddl):
             ref_temp = {}
             pkc=[]
             for col in snap.expressions:
-                for pk in col.args.get('constraints'):
-                    if isinstance(pk.args['kind'], exp.PrimaryKeyColumnConstraint):
-                        pkc.append(col.this.name)
+                if(col.args.get('constraints') is not None):
+                    for pk in col.args.get('constraints'):
+                        if('kind' in pk.args):
+                            if isinstance(pk.args['kind'], exp.PrimaryKeyColumnConstraint):
+                                pkc.append(col.this.name)
                 if isinstance(col, exp.ColumnDef):
                     columns[col.this.name] = col.args.get('kind').this.value
                 if isinstance(col,exp.PrimaryKey):
