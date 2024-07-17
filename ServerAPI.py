@@ -21,9 +21,15 @@ def extract_table_relationships(parsed_ddl):
             table_names.append(table)
             columns = {col.this.name: col.args.get('kind') for col in snap.expressions if isinstance(col, exp.ColumnDef)}
             ref_temp = {}
+            pkc=[]
             for col in snap.expressions:
+                for pk in col.args.get('constraints'):
+                    if isinstance(pk.args['kind'], exp.PrimaryKeyColumnConstraint):
+                        pkc.append(col.this.name)
                 if isinstance(col, exp.ColumnDef):
                     columns[col.this.name] = col.args.get('kind').this.value
+                if isinstance(col,exp.PrimaryKey):
+                    print(col.iter_expressions)
                 if isinstance(col, exp.ForeignKey):
                     ref_temp = {}
                     ref_temp['left_table'] = table
@@ -39,7 +45,7 @@ def extract_table_relationships(parsed_ddl):
                         ref_temp['right_table_column'].append(srcCol.name)
                 if(len(ref_temp.keys())!=0):
                     ref[right_table] = ref_temp
-            tables[table] = {'columns': columns, 'foreign_keys': ref,'foreign_keys_len':len(ref.keys())}
+            tables[table] = {'columns': columns, 'foreign_keys': ref,'foreign_keys_len':len(ref.keys()),'PrimaryKey':pkc}
 
         elif isinstance(statement,exp.AlterTable):
             snap = statement.this
@@ -48,6 +54,8 @@ def extract_table_relationships(parsed_ddl):
                 if isinstance(col, exp.AddConstraint):
                     ref_temp = {}
                     for action in col.expressions:
+                        
+
                         if isinstance(action,exp.ForeignKey):
                             ref_local = {}
                             ref_local['left_table']=table
