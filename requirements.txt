@@ -2,3 +2,4 @@ flask
 sqlglot
 gunicorn
 graphviz
+flask_cors
