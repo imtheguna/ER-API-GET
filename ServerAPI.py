@@ -4,7 +4,7 @@ from flask import send_file
 from sqlglot import exp
 from graphviz import Digraph
 import json
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 
 app = Flask(__name__)
