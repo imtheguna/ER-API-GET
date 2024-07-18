@@ -6,6 +6,11 @@ from graphviz import Digraph
 import json
 from flask_cors import CORS
 
+
+app = Flask(__name__)
+CORS(app) 
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 def extract_table_relationships(parsed_ddl):
     tables = {}
     relationships = []
@@ -105,18 +110,22 @@ def get_image(tables,lable=False,result='PNG'):
         return dag.source
     return send_file(filename+'.png', mimetype='image/png')
 
-app = Flask(__name__)
-CORS(app) 
+
 
 @app.route('/')
+@cross_origin(origin='*')
 def hello_world():
     return 'Hello'
 
 @app.route('/test')
+@cross_origin(origin='*')
 def test():
-    return 'OK'
+    data = {'message': 'OK'}
+    return jsonify(data)
+
 
 @app.route('/ER', methods=['GET', 'POST'])
+@cross_origin(origin='*')
 def ER():
     try:
         type = request.args.get('type', 'Guest')
